@@ -1,0 +1,12 @@
+# Android / Gradle
+.gradle/
+.kotlin/
+build/
+local.properties
+
+# IDE
+.idea/
+*.iml
+
+# Verification artifacts
+shots/
