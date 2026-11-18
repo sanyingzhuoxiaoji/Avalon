@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
@@ -448,8 +449,13 @@ private fun EpisodeStepper(
     onPlus: () -> Unit,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
+        // 图标向集数靠拢，保留原有按钮触控范围。
         IconButton(onClick = onMinus, enabled = episodes > 0) {
-            Icon(AvalonIcons.Minus, contentDescription = "减少已看集数")
+            Icon(
+                AvalonIcons.Minus,
+                contentDescription = "减少已看集数",
+                modifier = Modifier.offset(x = 6.dp),
+            )
         }
         Text(
             "$episodes 集",
@@ -459,7 +465,11 @@ private fun EpisodeStepper(
             modifier = Modifier.widthIn(min = 28.dp),
         )
         IconButton(onClick = onPlus) {
-            Icon(AvalonIcons.Add, contentDescription = "增加已看集数")
+            Icon(
+                AvalonIcons.Add,
+                contentDescription = "增加已看集数",
+                modifier = Modifier.offset(x = (-6).dp),
+            )
         }
     }
 }
