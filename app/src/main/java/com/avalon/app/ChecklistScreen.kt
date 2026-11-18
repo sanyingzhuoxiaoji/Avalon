@@ -1,5 +1,7 @@
 package com.avalon.app
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,13 +28,17 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -50,6 +56,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -63,6 +70,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -284,6 +292,22 @@ internal fun ChecklistScreen(
                             }
                         },
                         label = { Text(item.label) },
+                        // 星图签牌：低圆角、1dp 细描边，选中铺纸金底。
+                        shape = RoundedCornerShape(4.dp),
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = if (filterIndex == index) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.outlineVariant
+                            },
+                        ),
+                        colors = FilterChipDefaults.filterChipColors(
+                            containerColor = Color.Transparent,
+                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        ),
                     )
                 }
             }
@@ -412,13 +436,17 @@ private fun ChecklistRow(
     val title = draft ?: record.title
     Card(
         modifier = drag.rowModifier(record.id),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Row(
             Modifier
                 .fillMaxWidth()
-                .padding(start = 6.dp, end = 4.dp, top = 2.dp, bottom = 2.dp),
+                // 外紫内金的双细描边，对应预览牌卡的双线框。
+                .padding(2.dp)
+                .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f), RoundedCornerShape(3.dp))
+                .padding(start = 4.dp, end = 2.dp, top = 1.dp, bottom = 1.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Checkbox(
@@ -449,10 +477,13 @@ private fun ChecklistRow(
                         onFinishEditing = onFinishEditing,
                     )
                 } else {
+                    // 已看完：标题置灰加删除线，同预览牌面。
                     Text(
                         title.ifEmpty { inputHint },
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium,
+                        color = if (record.finished) MaterialTheme.colorScheme.onSurfaceVariant else Color.Unspecified,
+                        textDecoration = if (record.finished) TextDecoration.LineThrough else null,
                     )
                 }
                 if (record.note.isNotBlank()) {
@@ -552,28 +583,40 @@ private fun ProgressStepper(
     onMinus: () -> Unit,
     onPlus: () -> Unit,
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        // 图标向数字靠拢，保留原有按钮触控范围。
-        IconButton(onClick = onMinus, enabled = enabled && progress > BigDecimal.ZERO) {
-            Icon(
-                AvalonIcons.Minus,
-                contentDescription = "减少已看${unit}数",
-                modifier = Modifier.offset(x = 6.dp),
-            )
-        }
-        Text(
-            "${progress.toProgressText()} $unit",
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.widthIn(min = 28.dp),
-        )
-        IconButton(onClick = onPlus, enabled = enabled) {
-            Icon(
-                AvalonIcons.Add,
-                contentDescription = "增加已看${unit}数",
-                modifier = Modifier.offset(x = (-6).dp),
-            )
+    // 纸金进度牌：纸金底 + 紫细描边，数字与步进按钮落在纸面上。
+    Surface(
+        shape = RoundedCornerShape(4.dp),
+        color = MaterialTheme.colorScheme.primaryContainer,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onPrimaryContainer) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 2.dp),
+            ) {
+                // 图标向数字靠拢，保留原有按钮触控范围。
+                IconButton(onClick = onMinus, enabled = enabled && progress > BigDecimal.ZERO) {
+                    Icon(
+                        AvalonIcons.Minus,
+                        contentDescription = "减少已看${unit}数",
+                        modifier = Modifier.offset(x = 6.dp),
+                    )
+                }
+                Text(
+                    "${progress.toProgressText()} $unit",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.widthIn(min = 28.dp),
+                )
+                IconButton(onClick = onPlus, enabled = enabled) {
+                    Icon(
+                        AvalonIcons.Add,
+                        contentDescription = "增加已看${unit}数",
+                        modifier = Modifier.offset(x = (-6).dp),
+                    )
+                }
+            }
         }
     }
 }

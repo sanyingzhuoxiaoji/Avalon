@@ -1,6 +1,7 @@
 package com.avalon.app
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -44,8 +45,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -132,17 +135,20 @@ internal fun AvalonApp(store: AvalonStore) {
 
 @Composable
 private fun AvalonHeader() {
+    val orbits = painterResource(R.drawable.header_orbits)
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 2.dp),
+            .drawBehind { with(orbits) { draw(size) } }
+            .padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f)) {
             Text(
                 "阿瓦隆",
                 style = MaterialTheme.typography.titleLarge,
+                fontFamily = FontFamily.Serif,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.primary,
             )
@@ -157,6 +163,7 @@ private fun AvalonHeader() {
             contentDescription = "应用图标",
             modifier = Modifier
                 .size(44.dp)
+                .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
                 .clip(CircleShape),
             contentScale = ContentScale.Crop,
         )

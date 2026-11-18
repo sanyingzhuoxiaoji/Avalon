@@ -3,6 +3,8 @@ package com.avalon.app
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -255,25 +257,30 @@ private fun WebsiteRow(
     onDelete: () -> Unit,
 ) {
     val running = state?.running == true
+    // 预览的网页藏牌：纸金底、外紫内金双细描边、低圆角。
     Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        shape = RoundedCornerShape(4.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Column(
             Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 12.dp),
+                .padding(2.dp)
+                .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.45f), RoundedCornerShape(3.dp))
+                .padding(horizontal = 12.dp, vertical = 10.dp),
         ) {
             Text(
                 site.name,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
             SelectionContainer(Modifier.padding(top = 2.dp)) {
                 Text(
                     site.url,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.72f),
                 )
             }
             Box(Modifier.padding(top = 8.dp)) {
@@ -287,6 +294,7 @@ private fun WebsiteRow(
                     onClick = onTest,
                     enabled = !running,
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onPrimaryContainer),
                 ) {
                     Icon(AvalonIcons.Pulse, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
@@ -295,6 +303,7 @@ private fun WebsiteRow(
                 TextButton(
                     onClick = onOpen,
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onPrimaryContainer),
                 ) {
                     Icon(AvalonIcons.Open, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
@@ -303,6 +312,7 @@ private fun WebsiteRow(
                 TextButton(
                     onClick = onEdit,
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onPrimaryContainer),
                 ) {
                     Text("编辑")
                 }
@@ -326,7 +336,7 @@ private fun ProbeResultLine(state: ProbeUiState?) {
         state == null || (!state.running && state.result == null) -> Text(
             "尚未测试",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
         )
         state.running -> Row(verticalAlignment = Alignment.CenterVertically) {
             LinearProgressIndicator(modifier = Modifier.weight(1f))
@@ -334,7 +344,7 @@ private fun ProbeResultLine(state: ProbeUiState?) {
             Text(
                 "测试中…",
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f),
             )
         }
         else -> {
@@ -370,14 +380,14 @@ private fun ProbeResultLine(state: ProbeUiState?) {
                     Text(
                         "网站有响应，但返回了错误状态码",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f),
                         modifier = Modifier.padding(top = 4.dp),
                     )
                 }
                 else -> Text(
                     "尚未测试",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
                 )
             }
         }
@@ -386,7 +396,12 @@ private fun ProbeResultLine(state: ProbeUiState?) {
 
 @Composable
 private fun ResultChip(text: String, container: Color, content: Color) {
-    Surface(shape = RoundedCornerShape(8.dp), color = container) {
+    // 低圆角 + 同色细描边：结果徽章落在纸金牌面上仍有清晰边界。
+    Surface(
+        shape = RoundedCornerShape(4.dp),
+        color = container,
+        border = BorderStroke(1.dp, content.copy(alpha = 0.5f)),
+    ) {
         Text(
             text,
             style = MaterialTheme.typography.labelMedium,
