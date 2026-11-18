@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="46%" r="75%">
+      <stop offset="0" stop-color="#271a4e"/>
+      <stop offset=".55" stop-color="#1b1238"/>
+      <stop offset="1" stop-color="#110a24"/>
+    </radialGradient>
+    <path id="sp4" d="M0 -4C0.3 -1.6 1.6 -0.3 4 0C1.6 0.3 0.3 1.6 0 4C-0.3 1.6 -1.6 0.3 -4 0C-1.6 -0.3 -0.3 -1.6 0 -4Z"/>
+    <path id="sp8" d="M0 -11L1.6 -3.9L7.8 -7.8L3.9 -1.6L11 0L3.9 1.6L7.8 7.8L1.6 3.9L0 11L-1.6 3.9L-7.8 7.8L-3.9 1.6L-11 0L-3.9 -1.6L-7.8 -7.8L-1.6 -3.9Z"/>
+    <path id="rays" d="M0 -20V-26M10 -17.3L13 -22.5M17.3 -10L22.5 -13M20 0H26M17.3 10L22.5 13M10 17.3L13 22.5M0 20V26M-10 17.3L-13 22.5M-17.3 10L-22.5 13M-20 0H-26M-17.3 -10L-22.5 -13M-10 -17.3L-13 -22.5"/>
+    <g id="fr" fill="none">
+      <rect x="6" y="6" width="228" height="88" stroke="#d9bd8d" stroke-width=".9" opacity=".6"/>
+      <rect x="9.5" y="9.5" width="221" height="81" stroke="#d9bd8d" stroke-width=".45" opacity=".25" stroke-dasharray="3 2.5"/>
+      <path stroke="#d9bd8d" stroke-width=".7" opacity=".5" d="M18 6V10M30 6V8.5M42 6V10M54 6V8.5M66 6V10M78 6V8.5M90 6V10M102 6V8.5M114 6V10M126 6V8.5M138 6V10M150 6V8.5M162 6V10M174 6V8.5M186 6V10M198 6V8.5M210 6V10M222 6V8.5M18 94V90M30 94V92.5M42 94V90M54 94V92.5M66 94V90M78 94V92.5M90 94V90M102 94V92.5M114 94V90M126 94V92.5M138 94V90M150 94V92.5M162 94V90M174 94V92.5M186 94V90M198 94V92.5M210 94V90M222 94V92.5M6 18H10M6 30H8.5M6 42H10M6 54H8.5M6 66H10M6 78H8.5M6 90H10M234 18H230M234 30H231.5M234 42H230M234 54H231.5M234 66H230M234 78H231.5M234 90H230"/>
+      <path stroke="#b9a6e0" stroke-width=".7" opacity=".6" d="M6 16A10 10 0 0 1 16 6M234 16A10 10 0 0 0 224 6M6 84A10 10 0 0 0 16 94M234 84A10 10 0 0 1 224 94"/>
+      <g fill="#cdbcec" opacity=".85" stroke="none">
+        <circle cx="120" cy="6" r="1.1"/><circle cx="120" cy="94" r="1.1"/><circle cx="6" cy="50" r="1.1"/><circle cx="234" cy="50" r="1.1"/>
+      </g>
+    </g>
+  </defs>
+
+  <!-- p0 弓箭 -->
+  <symbol id="p0" viewBox="0 0 240 100" fill="none" stroke="none" stroke-linecap="round" stroke-linejoin="round">
+    <rect width="240" height="100" fill="url(#bg)"/>
+    <use href="#fr"/>
+    <g stroke="none">
+      <use href="#sp4" transform="translate(36 26) scale(.7)" fill="#cdbcec" opacity=".8"/>
+      <use href="#sp4" transform="translate(198 30) scale(.55)" fill="#d9bd8d" opacity=".7"/>
+      <use href="#sp4" transform="translate(206 66) scale(.8)" fill="#cdbcec" opacity=".6"/>
+      <use href="#sp4" transform="translate(52 74) scale(.5)" fill="#d9bd8d" opacity=".6"/>
+      <use href="#sp4" transform="translate(214 44) scale(.45)" fill="#e8d5a3" opacity=".5"/>
+      <circle cx="186" cy="44" r=".9" fill="#b9a6e0" opacity=".8"/>
+      <circle cx="44" cy="50" r=".8" fill="#e8d5a3" opacity=".7"/>
+      <circle cx="212" cy="20" r=".7" fill="#e8d5a3" opacity=".5"/>
+      <circle cx="70" cy="30" r=".7" fill="#b9a6e0" opacity=".6"/>
+    </g>
+    <use href="#rays" transform="translate(69 50) scale(.75) rotate(90)" fill="none" stroke="#b9a6e0" stroke-width=".6" opacity=".4"/>
+    <path d="M96 15C74 28 74 72 96 85" stroke="#b9a6e0" stroke-width=".7" stroke-dasharray="2 4" opacity=".5"/>
+    <path d="M84 18C64 30 64 70 84 82" stroke="#d9bd8d" stroke-width="1.1"/>
+    <path d="M84 18c5.5-3 9.5.5 5.5 4.5M84 82c5.5 3 9.5-.5 5.5-4.5" stroke="#d9bd8d" stroke-width=".9"/>
+    <path d="M66 46h7M65.5 50h8M66 54h7" stroke="#e8d5a3" stroke-width=".8" opacity=".9"/>
+    <path d="M84 19V81" stroke="#f0dfb2" stroke-width=".6" opacity=".9"/>
+    <path d="M84 50H170" stroke="#d9bd8d" stroke-width="1"/>
+    <path d="M170 45.5L184 50L170 54.5Z" fill="#d9bd8d" fill-opacity=".15" stroke="#d9bd8d" stroke-width="1"/>
+    <path d="M84 48.5L88 50L84 51.5" stroke="#f0dfb2" stroke-width=".7"/>
+    <path d="M90 47.5L76 39.5M90 52.5L76 60.5" stroke="#b9a6e0" stroke-width=".9"/>
+    <path d="M90 47.5l-5-4.5M90 52.5l-5 4.5" stroke="#b9a6e0" stroke-width=".6" opacity=".8"/>
+    <path d="M116 68L178 74" stroke="#b9a6e0" stroke-width=".9" opacity=".9"/>
+    <path d="M178 71.5L186 74.7L178 76.3Z" fill="#b9a6e0" fill-opacity=".15" stroke="#b9a6e0" stroke-width=".8"/>
+    <path d="M121 68.6L111 62M121 68.6L111 74.5" stroke="#b9a6e0" stroke-width=".7" opacity=".8"/>
+    <use href="#rays" transform="translate(184 50) scale(.4)" fill="none" stroke="#d9bd8d" stroke-width=".7" opacity=".35"/>
+  </symbol>
+
+  <!-- p1 沙漏 -->
+  <symbol id="p1" viewBox="0 0 240 100" fill="none" stroke="none" stroke-linecap="round" stroke-linejoin="round">
+    <rect width="240" height="100" fill="url(#bg)"/>
+    <use href="#fr"/>
+    <g stroke="none">
+      <use href="#sp4" transform="translate(44 28) scale(.65)" fill="#cdbcec" opacity=".7"/>
+      <use href="#sp4" transform="translate(196 32) scale(.7)" fill="#d9bd8d" opacity=".7"/>
+      <use href="#sp4" transform="translate(190 68) scale(.5)" fill="#cdbcec" opacity=".6"/>
+      <use href="#sp4" transform="translate(48 70) scale(.55)" fill="#e8d5a3" opacity=".6"/>
+      <circle cx="66" cy="46" r=".8" fill="#b9a6e0" opacity=".7"/>
+      <circle cx="174" cy="50" r=".8" fill="#e8d5a3" opacity=".7"/>
+      <circle cx="60" cy="22" r=".7" fill="#b9a6e0" opacity=".5"/>
+    </g>
+    <path d="M84 24C76 38 76 62 84 76" stroke="#b9a6e0" stroke-width=".7" stroke-dasharray="2 3" opacity=".45"/>
+    <path d="M156 24C164 38 164 62 156 76" stroke="#b9a6e0" stroke-width=".7" stroke-dasharray="2 3" opacity=".45"/>
+    <path d="M96 17V83M144 17V83" stroke="#d9bd8d" stroke-width="1.2"/>
+    <path d="M92 18Q120 15 148 18M92 82Q120 85 148 82" stroke="#d9bd8d" stroke-width="1.1"/>
+    <g stroke="none">
+      <use href="#sp4" transform="translate(92 18) scale(.45)" fill="#d9bd8d" opacity=".9"/>
+      <use href="#sp4" transform="translate(148 18) scale(.45)" fill="#d9bd8d" opacity=".9"/>
+      <use href="#sp4" transform="translate(92 82) scale(.45)" fill="#d9bd8d" opacity=".9"/>
+      <use href="#sp4" transform="translate(148 82) scale(.45)" fill="#d9bd8d" opacity=".9"/>
+    </g>
+    <ellipse cx="120" cy="21" rx="21" ry="2.2" stroke="#d9bd8d" stroke-width=".8"/>
+    <ellipse cx="120" cy="79" rx="21" ry="2.2" stroke="#d9bd8d" stroke-width=".8"/>
+    <path d="M101 23C101 36 113 45.5 118.5 49.2 119.5 49.9 120.5 49.9 121.5 49.2 127 45.5 139 36 139 23" stroke="#d9bd8d" stroke-width="1"/>
+    <path d="M101 77C101 64 113 54.5 118.5 50.8 119.5 50.1 120.5 50.1 121.5 50.8 127 54.5 139 64 139 77" stroke="#d9bd8d" stroke-width="1"/>
+    <path d="M108 40Q120 31 132 40" stroke="#e8d5a3" stroke-width=".9"/>
+    <path d="M111 38l5-4M117 37l5-4M114 39.5l6-5" stroke="#e8d5a3" stroke-width=".5" opacity=".6"/>
+    <path d="M120 51V67" stroke="#f0dfb2" stroke-width="1" stroke-dasharray="1.5 2.4" opacity=".9"/>
+    <path d="M104 76Q120 63 136 76" stroke="#e8d5a3" stroke-width=".9"/>
+    <path d="M102 77H138" stroke="#e8d5a3" stroke-width=".8"/>
+    <g stroke="none">
+      <circle cx="114" cy="74" r=".7" fill="#f0dfb2" opacity=".9"/>
+      <circle cx="124" cy="72.5" r=".7" fill="#f0dfb2" opacity=".9"/>
+      <circle cx="120" cy="70" r=".6" fill="#f0dfb2" opacity=".8"/>
+    </g>
+    <path d="M105 26C105 34 108 40 112 44" stroke="#cdbcec" stroke-width=".5" opacity=".4"/>
+    <path d="M135 74C135 68 132 62 129 59" stroke="#cdbcec" stroke-width=".5" opacity=".35"/>
+  </symbol>
+
+  <!-- p2 双星 -->
+  <symbol id="p2" viewBox="0 0 240 100" fill="none" stroke="none" stroke-linecap="round" stroke-linejoin="round">
+    <rect width="240" height="100" fill="url(#bg)"/>
+    <use href="#fr"/>
+    <g stroke="none">
+      <use href="#sp4" transform="translate(48 30) scale(.6)" fill="#e8d5a3" opacity=".6"/>
+      <use href="#sp4" transform="translate(198 62) scale(.7)" fill="#cdbcec" opacity=".6"/>
+      <use href="#sp4" transform="translate(56 72) scale(.5)" fill="#cdbcec" opacity=".6"/>
+      <use href="#sp4" transform="translate(206 26) scale(.5)" fill="#e8d5a3" opacity=".5"/>
+      <circle cx="188" cy="52" r=".9" fill="#b9a6e0" opacity=".7"/>
+      <circle cx="42" cy="52" r=".8" fill="#b9a6e0" opacity=".6"/>
+    </g>
+    <ellipse cx="122" cy="46" rx="54" ry="24" transform="rotate(-12 122 46)" stroke="#b9a6e0" stroke-width=".7" stroke-dasharray="1.5 3.5" opacity=".55"/>
+    <ellipse cx="122" cy="46" rx="44" ry="18" transform="rotate(-12 122 46)" stroke="#b9a6e0" stroke-width=".5" stroke-dasharray="1 4" opacity=".25"/>
+    <g stroke="none">
+      <circle cx="73" cy="56" r=".8" fill="#d9bd8d" opacity=".7"/>
+      <circle cx="90" cy="29" r=".7" fill="#cdbcec" opacity=".7"/>
+      <circle cx="158" cy="62" r=".8" fill="#d9bd8d" opacity=".6"/>
+      <circle cx="176" cy="44" r=".7" fill="#cdbcec" opacity=".6"/>
+    </g>
+    <use href="#rays" transform="translate(98 52) scale(1.1)" fill="none" stroke="#b9a6e0" stroke-width=".5" opacity=".4"/>
+    <circle cx="98" cy="52" r="20" stroke="#d9bd8d" stroke-width=".5" stroke-dasharray="1 3" opacity=".4"/>
+    <path d="M0 -23V23M-23 0H23" transform="translate(98 52) rotate(14.5)" stroke="#b9a6e0" stroke-width=".5" opacity=".5"/>
+    <use href="#sp8" transform="translate(98 52) scale(1.5) rotate(-8)" fill="none" stroke="#d9bd8d" stroke-width=".75"/>
+    <circle cx="98" cy="52" r="2.2" fill="#f0dfb2" stroke="none"/>
+    <use href="#rays" transform="translate(155 36) scale(.55) rotate(20)" fill="none" stroke="#b9a6e0" stroke-width=".6" opacity=".4"/>
+    <path d="M0 -16V16M-16 0H16" transform="translate(155 36) rotate(40.5)" stroke="#b9a6e0" stroke-width=".45" opacity=".45"/>
+    <use href="#sp8" transform="translate(155 36) scale(.85) rotate(18)" fill="none" stroke="#cdbcec" stroke-width=".9"/>
+    <circle cx="155" cy="36" r="1.4" fill="#cdbcec" stroke="none"/>
+  </symbol>
+
+  <!-- p3 书与羽笔 -->
+  <symbol id="p3" viewBox="0 0 240 100" fill="none" stroke="none" stroke-linecap="round" stroke-linejoin="round">
+    <rect width="240" height="100" fill="url(#bg)"/>
+    <use href="#fr"/>
+    <g stroke="none">
+      <use href="#sp4" transform="translate(84 30) scale(.6)" fill="#cdbcec" opacity=".7"/>
+      <use href="#sp4" transform="translate(150 24) scale(.5)" fill="#d9bd8d" opacity=".7"/>
+      <use href="#sp4" transform="translate(200 44) scale(.7)" fill="#cdbcec" opacity=".6"/>
+      <use href="#sp4" transform="translate(40 44) scale(.6)" fill="#d9bd8d" opacity=".6"/>
+      <circle cx="196" cy="66" r=".8" fill="#b9a6e0" opacity=".6"/>
+      <circle cx="52" cy="24" r=".7" fill="#b9a6e0" opacity=".6"/>
+    </g>
+    <path d="M64 78C90 88 150 88 176 78" stroke="#b9a6e0" stroke-width=".6" stroke-dasharray="2 4" opacity=".4"/>
+    <path d="M73 55C93 48.5 111 50.5 120 57.5M73 75C93 68.5 111 70.5 120 77.5M167 55C147 48.5 129 50.5 120 57.5M167 75C147 68.5 129 70.5 120 77.5M73 55V75M167 55V75" stroke="#b9a6e0" stroke-width=".5" opacity=".5"/>
+    <path d="M120 57C112 50 94 48 76 54L76 74C94 68 112 70 120 77Z" fill="#2a1f52" fill-opacity=".45" stroke="#d9bd8d" stroke-width="1"/>
+    <path d="M120 57C128 50 146 48 164 54L164 74C146 68 128 70 120 77Z" fill="#2a1f52" fill-opacity=".45" stroke="#d9bd8d" stroke-width="1"/>
+    <path d="M120 57V77" stroke="#d9bd8d" stroke-width=".8"/>
+    <path d="M120 77l3 2.5-3 2.5-3-2.5z" stroke="#b9a6e0" stroke-width=".7"/>
+    <path d="M83 58.5C95 54.5 106 54.5 113 57M83 63C95 59 106 59 113 61.5M83 67.5C95 63.5 106 63.5 113 66" stroke="#e8d5a3" stroke-width=".45" opacity=".45"/>
+    <path d="M127 57C134 54.5 145 54.5 157 58.5M127 61.5C134 59 145 59 157 63M127 66C134 63.5 145 63.5 157 67.5" stroke="#e8d5a3" stroke-width=".45" opacity=".45"/>
+    <path d="M84 79C100 83 140 83 156 79" stroke="#cdbcec" stroke-width=".5" stroke-dasharray="2 3" opacity=".3"/>
+    <path d="M168 22C158 30 144 46 130 57" stroke="#e8d5a3" stroke-width="1"/>
+    <path d="M130 57L126.5 61" stroke="#e8d5a3" stroke-width=".7"/>
+    <path d="M126.5 61l2-.5" stroke="#e8d5a3" stroke-width=".4"/>
+    <path d="M168 22C162 13.5 169 9 178 11.5C177 17.5 173 21 168 22Z" fill="#2a1f52" fill-opacity=".4" stroke="#d9bd8d" stroke-width=".95"/>
+    <path d="M168 21.2C172 18.5 174.5 15.5 175.5 12.5M166.5 19C170 16 172 13.5 172.5 11.5" stroke="#d9bd8d" stroke-width=".45" opacity=".6"/>
+    <g stroke="none">
+      <circle cx="120" cy="62" r=".9" fill="#f0dfb2" opacity=".8"/>
+      <circle cx="116" cy="64" r=".6" fill="#f0dfb2" opacity=".7"/>
+    </g>
+  </symbol>
+
+  <!-- p4 匕首 -->
+  <symbol id="p4" viewBox="0 0 240 100" fill="none" stroke="none" stroke-linecap="round" stroke-linejoin="round">
+    <rect width="240" height="100" fill="url(#bg)"/>
+    <use href="#fr"/>
+    <g stroke="none">
+      <use href="#sp4" transform="translate(52 30) scale(.65)" fill="#cdbcec" opacity=".7"/>
+      <use href="#sp4" transform="translate(188 28) scale(.6)" fill="#d9bd8d" opacity=".7"/>
+      <use href="#sp4" transform="translate(60 70) scale(.55)" fill="#d9bd8d" opacity=".6"/>
+      <use href="#sp4" transform="translate(196 66) scale(.7)" fill="#cdbcec" opacity=".6"/>
+      <use href="#sp4" transform="translate(150 22) scale(.45)" fill="#e8d5a3" opacity=".6"/>
+      <circle cx="76" cy="52" r=".8" fill="#b9a6e0" opacity=".6"/>
+      <circle cx="168" cy="44" r=".8" fill="#e8d5a3" opacity=".6"/>
+    </g>
+    <circle cx="120" cy="46" r="29" stroke="#b9a6e0" stroke-width=".5" stroke-dasharray="1 3.5" opacity=".4"/>
+    <use href="#rays" transform="translate(120 30) scale(.5)" fill="none" stroke="#d9bd8d" stroke-width=".6" opacity=".5"/>
+    <path d="M78 46H90M150 46H162" stroke="#d9bd8d" stroke-width=".6" opacity=".6"/>
+    <circle cx="74" cy="46" r="1" fill="#d9bd8d" opacity=".7" stroke="none"/>
+    <circle cx="166" cy="46" r="1" fill="#b9a6e0" opacity=".7" stroke="none"/>
+    <path d="M120 20L128 35L128 57L120 66L112 57L112 35Z" fill="#2a1f52" fill-opacity=".4" stroke="#d9bd8d" stroke-width="1.05"/>
+    <path d="M120 25V60" stroke="#e8d5a3" stroke-width=".6" opacity=".8"/>
+    <path d="M116 36V55M124 36V55" stroke="#e8d5a3" stroke-width=".4" stroke-dasharray="2 2.4" opacity=".55"/>
+    <path d="M103 65.5Q120 61 137 65.5" stroke="#d9bd8d" stroke-width="2"/>
+    <circle cx="103" cy="65.5" r="1.6" fill="#1b1238" stroke="#d9bd8d" stroke-width=".8"/>
+    <circle cx="137" cy="65.5" r="1.6" fill="#1b1238" stroke="#d9bd8d" stroke-width=".8"/>
+    <path d="M115.5 68V82M124.5 68V82" stroke="#d9bd8d" stroke-width="1"/>
+    <path d="M115.5 70.5l9 2.6M124.5 73.4l-9 2.6M115.5 76l9 2.6" stroke="#d9bd8d" stroke-width=".55" opacity=".8"/>
+    <circle cx="120" cy="84.5" r="3.6" stroke="#d9bd8d" stroke-width="1"/>
+    <circle cx="120" cy="84.5" r="1.5" fill="#f0dfb2" opacity=".9" stroke="none"/>
+    <path d="M108 89H132" stroke="#b9a6e0" stroke-width=".5" stroke-dasharray="1 3" opacity=".5"/>
+  </symbol>
+
+  <!-- p5 海浪 -->
+  <symbol id="p5" viewBox="0 0 240 100" fill="none" stroke="none" stroke-linecap="round" stroke-linejoin="round">
+    <rect width="240" height="100" fill="url(#bg)"/>
+    <use href="#fr"/>
+    <g stroke="none">
+      <use href="#sp4" transform="translate(60 22) scale(.6)" fill="#cdbcec" opacity=".7"/>
+      <use href="#sp4" transform="translate(148 22) scale(.5)" fill="#d9bd8d" opacity=".6"/>
+      <use href="#sp4" transform="translate(214 50) scale(.6)" fill="#cdbcec" opacity=".6"/>
+      <use href="#sp4" transform="translate(34 44) scale(.5)" fill="#e8d5a3" opacity=".6"/>
+      <circle cx="170" cy="26" r=".8" fill="#b9a6e0" opacity=".6"/>
+      <circle cx="90" cy="26" r=".7" fill="#b9a6e0" opacity=".6"/>
+    </g>
+    <path d="M52 26C90 18 150 18 188 26" stroke="#b9a6e0" stroke-width=".5" stroke-dasharray="1 4" opacity=".4"/>
+    <path d="M44 36H196" stroke="#b9a6e0" stroke-width=".5" stroke-dasharray="3 4" opacity=".45"/>
+    <path d="M186 19C190 21 191 26 188.6 30C185 27.5 183.6 22 186 19Z" stroke="#d9bd8d" stroke-width=".8"/>
+    <path d="M58 70C78 42 122 34 152 46C172 54 180 64 174 71" stroke="#d9bd8d" stroke-width="1.2"/>
+    <path d="M112 42C120 35 132 36 134 43C135.5 48.5 129 51 126 47C124 44.5 127 42 129 44" stroke="#d9bd8d" stroke-width="1"/>
+    <path d="M96 52c4 3 8 3 12 0M112 56c4 3 8 3 12 0" stroke="#e8d5a3" stroke-width=".6" opacity=".7"/>
+    <path d="M36 74C46 62 62 60 74 66" stroke="#d9bd8d" stroke-width="1"/>
+    <path d="M62 62c5-3 10 0 9 4-.8 3-5 3-6 0" stroke="#d9bd8d" stroke-width=".8"/>
+    <path d="M168 72C178 64 192 64 202 70" stroke="#d9bd8d" stroke-width="1"/>
+    <path d="M186 66c4-2.5 8 0 7 3-.6 2.2-4 2.2-4.6 0" stroke="#d9bd8d" stroke-width=".7"/>
+    <path d="M30 78C70 74 100 82 130 78C160 74 190 80 210 77" stroke="#d9bd8d" stroke-width=".8" opacity=".8"/>
+    <path d="M38 82C80 79 120 85 160 81C180 79 196 82 204 81" stroke="#d9bd8d" stroke-width=".5" opacity=".5"/>
+    <g stroke="none">
+      <circle cx="104" cy="32" r="1" fill="#f0dfb2" opacity=".9"/>
+      <circle cx="126" cy="30" r="1.2" fill="#f0dfb2" opacity=".9"/>
+      <circle cx="142" cy="38" r=".9" fill="#f0dfb2" opacity=".8"/>
+      <circle cx="96" cy="44" r=".7" fill="#cdbcec" opacity=".7"/>
+    </g>
+  </symbol>
+
+  <!-- p6 水晶 -->
+  <symbol id="p6" viewBox="0 0 240 100" fill="none" stroke="none" stroke-linecap="round" stroke-linejoin="round">
+    <rect width="240" height="100" fill="url(#bg)"/>
+    <use href="#fr"/>
+    <g stroke="none">
+      <use href="#sp4" transform="translate(58 32) scale(.6)" fill="#cdbcec" opacity=".7"/>
+      <use href="#sp4" transform="translate(182 30) scale(.7)" fill="#d9bd8d" opacity=".7"/>
+      <use href="#sp4" transform="translate(172 62) scale(.5)" fill="#cdbcec" opacity=".6"/>
+      <use href="#sp4" transform="translate(50 64) scale(.55)" fill="#d9bd8d" opacity=".6"/>
+      <circle cx="168" cy="44" r=".8" fill="#b9a6e0" opacity=".6"/>
+      <circle cx="64" cy="46" r=".8" fill="#e8d5a3" opacity=".6"/>
+    </g>
+    <circle cx="120" cy="48" r="33" stroke="#d9bd8d" stroke-width=".5" stroke-dasharray="1 4" opacity=".3"/>
+    <use href="#rays" transform="translate(120 47) scale(.95)" fill="none" stroke="#b9a6e0" stroke-width=".55" opacity=".35"/>
+    <path d="M95 63L103 57.5L105 69Z" stroke="#b9a6e0" stroke-width=".7" opacity=".8"/>
+    <path d="M145 61L137 55.5L135 67Z" stroke="#b9a6e0" stroke-width=".7" opacity=".8"/>
+    <ellipse cx="120" cy="82" rx="25" ry="3" stroke="#b9a6e0" stroke-width=".6" stroke-dasharray="1.5 3" opacity=".5"/>
+    <path d="M120 16L134 30L134 66L120 80L106 66L106 30Z" fill="#2a1f52" fill-opacity=".35" stroke="#d9bd8d" stroke-width="1.15"/>
+    <path d="M120 16V80" stroke="#e8d5a3" stroke-width=".55" opacity=".7"/>
+    <path d="M106 30L120 44L134 30M106 66L120 52L134 66" stroke="#d9bd8d" stroke-width=".7"/>
+    <path d="M113 35V61M127 35V61" stroke="#e8d5a3" stroke-width=".4" opacity=".35"/>
+    <path d="M112 31L117.5 24.5M115.5 34.5L121.5 27" stroke="#f0dfb2" stroke-width=".5" opacity=".6"/>
+    <use href="#rays" transform="translate(120 18) scale(.3)" fill="none" stroke="#f0dfb2" stroke-width=".7" opacity=".5"/>
+    <use href="#sp4" transform="translate(112 26) scale(.6)" fill="#f0dfb2" opacity=".9" stroke="none"/>
+  </symbol>
+
+  <!-- p7 蔷薇 -->
+  <symbol id="p7" viewBox="0 0 240 100" fill="none" stroke="none" stroke-linecap="round" stroke-linejoin="round">
+    <rect width="240" height="100" fill="url(#bg)"/>
+    <use href="#fr"/>
+    <g stroke="none">
+      <use href="#sp4" transform="translate(86 28) scale(.6)" fill="#d9bd8d" opacity=".7"/>
+      <use href="#sp4" transform="translate(152 30) scale(.65)" fill="#cdbcec" opacity=".7"/>
+      <use href="#sp4" transform="translate(170 52) scale(.5)" fill="#d9bd8d" opacity=".6"/>
+      <use href="#sp4" transform="translate(58 60) scale(.6)" fill="#cdbcec" opacity=".6"/>
+      <circle cx="94" cy="52" r=".8" fill="#b9a6e0" opacity=".6"/>
+      <circle cx="148" cy="60" r=".7" fill="#e8d5a3" opacity=".6"/>
+    </g>
+    <circle cx="120" cy="44" r="23" stroke="#b9a6e0" stroke-width=".55" stroke-dasharray="1 3.5" opacity=".45"/>
+    <path d="M154 56C157 52 162 52 163 56C162 59.5 156 60 154 56Z" stroke="#b9a6e0" stroke-width=".7" opacity=".8"/>
+    <path d="M158 60v4" stroke="#b9a6e0" stroke-width=".6" opacity=".7"/>
+    <path d="M112.5 71C104.5 69.5 100 63.5 102.5 59C109 61 112 65.5 112.5 71Z" fill="#2a1f52" fill-opacity=".25" stroke="#d9bd8d" stroke-width=".9"/>
+    <path d="M112.5 71C108 68 105 64.5 103.5 61" stroke="#d9bd8d" stroke-width=".4" opacity=".6"/>
+    <path d="M117.5 74C125 73.5 129.5 68.5 128 63.5C121.5 65.5 118 69.5 117.5 74Z" fill="#2a1f52" fill-opacity=".25" stroke="#d9bd8d" stroke-width=".9"/>
+    <path d="M117.5 74C122 71 125 67.5 127 64.5" stroke="#d9bd8d" stroke-width=".4" opacity=".6"/>
+    <path d="M119 67C116 72 112.5 75 113 81" stroke="#d9bd8d" stroke-width="1.1"/>
+    <path d="M117.5 70.2l-4.2 1.6" stroke="#d9bd8d" stroke-width=".9" opacity=".9"/>
+    <path d="M116 60l-3.5 6M120 61v6.5M124 60l3.5 6" stroke="#d9bd8d" stroke-width=".8"/>
+    <path d="M120 27Q107.7 27 103.8 38.7Q100 50.5 110 57.8Q120 65 130 57.8Q140 50.5 136.2 38.7Q132.3 27 120 27Z" fill="#2a1f52" fill-opacity=".35" stroke="#d9bd8d" stroke-width="1"/>
+    <path d="M103.8 38.7l6.5 1.5M136.2 38.7l-6.5 1.5" stroke="#e8d5a3" stroke-width=".45" opacity=".55"/>
+    <path d="M120 44C123.5 41.5 127.5 44 126 48C124 53 117.5 51.5 116.5 45.5C115.5 38.5 123 34.5 128.5 37.5C135.5 41.5 136.5 51 130.5 56C123 62.5 112.5 58.5 110.5 49C108.5 39 118 31.5 127.5 33.5" stroke="#e8d5a3" stroke-width=".95"/>
+  </symbol>
+</svg>
