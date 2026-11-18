@@ -2,10 +2,12 @@ package com.avalon.app
 
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
@@ -27,9 +29,9 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -38,12 +40,10 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.mapSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,8 +51,12 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -74,7 +78,7 @@ private enum class ChecklistFilter(val label: String) {
     Finished("已看完"),
 }
 
-/** 两种清单的差异化文案：页标题、进度单位（集/话）、新行输入提示。 */
+/** 两种清单的差异化文案：页标题、进度单位（集/话）、空行提示。 */
 private val ChecklistKind.pageTitle: String
     get() = when (this) {
         ChecklistKind.Anime -> "追番记录"
@@ -89,8 +93,8 @@ private val ChecklistKind.progressUnit: String
 
 private val ChecklistKind.inputHint: String
     get() = when (this) {
-        ChecklistKind.Anime -> "输入番名，回车下一行"
-        ChecklistKind.Manga -> "输入漫画名，回车下一行"
+        ChecklistKind.Anime -> "输入番名"
+        ChecklistKind.Manga -> "输入漫画名"
     }
 
 /** 清单页（追番/漫画共用）：Notes 式行内清单——行内输入、回车下一行、勾选下沉、进度步进。 */
@@ -102,71 +106,80 @@ internal fun ChecklistScreen(
     modifier: Modifier = Modifier,
 ) {
     var filterIndex by rememberSaveable { mutableIntStateOf(0) }
-    // 行内标题草稿：记录 id → 未提交文本；提交成功才移除，失败保留并弹条。
     val titleDrafts = rememberSaveable(saver = TitleDraftsSaver) { mutableStateMapOf<String, String>() }
-    // 新行编辑器草稿，可暂存未提交的多行文本。
-    var editorDraft by rememberSaveable { mutableStateOf("") }
+    var editingId by rememberSaveable { mutableStateOf<String?>(null) }
+    var newRowId by rememberSaveable { mutableStateOf<String?>(null) }
+    var insertAfterId by rememberSaveable { mutableStateOf<String?>(null) }
+    var newRowFinished by rememberSaveable { mutableStateOf(false) }
     var pendingDeleteId by rememberSaveable { mutableStateOf<String?>(null) }
     val listState = rememberLazyListState()
-    val newLineFocus = remember { FocusRequester() }
-    val entryScope = rememberCoroutineScope()
 
-    fun focusNewLine() {
-        entryScope.launch {
-            withFrameNanos { }
-            val index = if (ChecklistFilter.entries[filterIndex] == ChecklistFilter.Finished) {
-                0
+    fun clearNewRow() {
+        newRowId?.let { titleDrafts.remove(it) }
+        newRowId = null
+        insertAfterId = null
+    }
+
+    fun commitTitle(record: ChecklistRecord): Boolean {
+        val draft = titleDrafts[record.id]?.trim().orEmpty()
+        val isNew = record.id == newRowId
+        if (draft.isEmpty()) {
+            if (!isNew) titleDrafts.remove(record.id)
+            return !isNew
+        }
+        return try {
+            if (isNew) {
+                checklist.insertAfter(insertAfterId, record.copy(title = draft))
+                clearNewRow()
             } else {
-                checklist.records.count { !it.finished }
+                if (draft != record.title) {
+                    checklist.save(existingId = record.id, title = draft, note = record.note)
+                }
+                titleDrafts.remove(record.id)
             }
-            listState.scrollToItem(index)
-            withFrameNanos { }
-            newLineFocus.requestFocus()
-        }
-    }
-
-    fun commitTitle(record: ChecklistRecord) {
-        val draft = titleDrafts[record.id] ?: return
-        val trimmed = draft.trim()
-        if (trimmed.isEmpty() || trimmed == record.title) {
-            titleDrafts.remove(record.id)
-            return
-        }
-        try {
-            checklist.save(existingId = record.id, title = trimmed, note = record.note)
-            titleDrafts.remove(record.id)
+            true
         } catch (e: StorageWriteException) {
-            // 失败保留草稿，展示数据层的中文错误。
             scope.launch { snackbarHostState.showStorageFailure(e) }
+            false
         }
     }
 
-    fun changeTitle(record: ChecklistRecord, input: String) {
-        titleDrafts[record.id] = input.replace('\n', ' ')
-        if ('\n' in input) commitTitle(record)
+    fun finishEditing(record: ChecklistRecord) {
+        if (editingId == record.id) editingId = null
+        if (record.id == newRowId && titleDrafts[record.id].isNullOrBlank()) {
+            clearNewRow()
+        } else {
+            commitTitle(record)
+        }
     }
 
-    // 按行提交编辑器内容，返回应保留的剩余草稿（失败的行原样带回，绝不静默丢弃）。
-    fun commitEditorLines(raw: String, flushTail: Boolean = false): String {
-        val parts = raw.split('\n')
-        val tail = if (flushTail) "" else parts.last()
-        val failed = StringBuilder()
-        var failure: StorageWriteException? = null
-        val lines = if (flushTail) parts else parts.dropLast(1)
-        lines.forEach { line ->
-            val title = line.trim()
-            if (title.isEmpty()) return@forEach
-            try {
-                checklist.save(existingId = null, title = title, note = "")
-            } catch (e: StorageWriteException) {
-                failed.appendLine(title)
-                failure = e
+    fun closeEditor() {
+        val id = editingId ?: return
+        val record = if (id == newRowId) {
+            ChecklistRecord(id, "", finished = newRowFinished)
+        } else {
+            checklist.records.firstOrNull { it.id == id }
+        }
+        if (record != null) finishEditing(record) else editingId = null
+    }
+
+    fun insertRow(after: ChecklistRecord?) {
+        // 空白行收到回车时不叠加更多空白行。
+        if (after != null && !commitTitle(after)) return
+        val pending = newRowId
+        if (pending != null) {
+            if (titleDrafts[pending].isNullOrBlank()) {
+                clearNewRow()
+            } else if (!commitTitle(ChecklistRecord(pending, "", finished = newRowFinished))) {
+                editingId = pending
+                return
             }
         }
-        failure?.let { error ->
-            scope.launch { snackbarHostState.showStorageFailure(error) }
-        }
-        return if (failed.isEmpty()) tail else failed.toString() + tail
+        insertAfterId = after?.id
+        newRowFinished = after?.finished == true
+        val id = newId()
+        newRowId = id
+        editingId = id
     }
 
     fun changeProgress(record: ChecklistRecord, delta: Int) {
@@ -178,10 +191,10 @@ internal fun ChecklistScreen(
     }
 
     fun commitPending() {
-        titleDrafts.toMap().keys.forEach { id ->
-            checklist.records.firstOrNull { it.id == id }?.let { commitTitle(it) }
+        for (record in checklist.records.toList()) {
+            if (record.id in titleDrafts) commitTitle(record)
         }
-        editorDraft = commitEditorLines(editorDraft, flushTail = true)
+        newRowId?.let { commitTitle(ChecklistRecord(it, "", finished = newRowFinished)) }
     }
 
     // 活动暂停或本页被移除（切到其他页）时提交未保存输入，避免静默丢失。
@@ -199,10 +212,50 @@ internal fun ChecklistScreen(
     }
 
     val filter = ChecklistFilter.entries[filterIndex]
-    val unfinished = checklist.records.filter { !it.finished }
-    val completed = checklist.records.filter { it.finished }
-    val showUnfinished = filter != ChecklistFilter.Finished
-    val showCompleted = filter != ChecklistFilter.Unfinished
+    val savedRows = checklist.records.toList()
+    val completedCount = savedRows.count { it.finished }
+    val draftRowId = newRowId
+    val displayedRows = remember(savedRows, draftRowId, insertAfterId, newRowFinished, filter) {
+        val ordered = if (draftRowId == null) savedRows else savedRows.toMutableList().apply {
+            val index = indexOfFirst { it.id == insertAfterId } + 1
+            add(index, ChecklistRecord(draftRowId, "", finished = newRowFinished))
+        }
+        buildList {
+            if (filter != ChecklistFilter.Finished) addAll(ordered.filterNot { it.finished })
+            if (filter != ChecklistFilter.Unfinished) {
+                val completed = ordered.filter { it.finished }
+                if (completed.isNotEmpty()) {
+                    add(null) // 已看完分组的标题。
+                    addAll(completed)
+                }
+            }
+        }
+    }
+    val groups = remember(savedRows) { savedRows.associate { it.id to it.finished } }
+    val drag = rememberChecklistDrag(
+        listState = listState,
+        canDrop = { id, targetId -> groups[id]?.let { it == groups[targetId] } == true },
+        onDrop = { id, targetId, before ->
+            try {
+                checklist.move(id, targetId, before)
+            } catch (e: StorageWriteException) {
+                scope.launch { snackbarHostState.showStorageFailure(e) }
+            }
+        },
+    )
+
+    LaunchedEffect(displayedRows) {
+        drag.cancelDrag()
+    }
+
+    LaunchedEffect(draftRowId) {
+        if (draftRowId != null) {
+            val position = displayedRows.indexOfFirst { it?.id == draftRowId }
+            if (position >= 0 && listState.layoutInfo.visibleItemsInfo.none { it.key == draftRowId }) {
+                listState.scrollToItem(position)
+            }
+        }
+    }
 
     Column(modifier.fillMaxSize().imePadding()) {
         Column(Modifier.padding(horizontal = 20.dp)) {
@@ -212,7 +265,7 @@ internal fun ChecklistScreen(
                 fontWeight = FontWeight.SemiBold,
             )
             Text(
-                "共 ${checklist.records.size} 部 · 已看完 ${completed.size} 部",
+                "共 ${savedRows.size} 部 · 已看完 $completedCount 部",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 2.dp),
@@ -224,79 +277,67 @@ internal fun ChecklistScreen(
                 ChecklistFilter.entries.forEachIndexed { index, item ->
                     FilterChip(
                         selected = filterIndex == index,
-                        onClick = { filterIndex = index },
+                        onClick = {
+                            if (filterIndex != index) {
+                                closeEditor()
+                                filterIndex = index
+                            }
+                        },
                         label = { Text(item.label) },
                     )
                 }
             }
         }
         LazyColumn(
-            modifier = Modifier.fillMaxWidth().weight(1f),
+            modifier = Modifier.fillMaxWidth().weight(1f).then(drag.listModifier()),
             state = listState,
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 132.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            if (showUnfinished) {
-                items(unfinished, key = { it.id }) { record ->
-                    ChecklistRow(
-                        record = record,
-                        draft = titleDrafts[record.id],
-                        progressUnit = checklist.kind.progressUnit,
-                        onDraftChange = { changeTitle(record, it) },
-                        onCommitTitle = { commitTitle(record) },
-                        onToggle = {
-                            try {
-                                checklist.setFinished(record.id, !record.finished)
-                            } catch (e: StorageWriteException) {
-                                scope.launch { snackbarHostState.showStorageFailure(e) }
+            if (displayedRows.isEmpty()) {
+                item {
+                    if (filter == ChecklistFilter.Finished && savedRows.isNotEmpty()) {
+                        Text("还没有已看完的记录", Modifier.padding(horizontal = 4.dp, vertical = 8.dp))
+                    } else {
+                        TextButton(onClick = {
+                            if (filter == ChecklistFilter.Finished) {
+                                filterIndex = ChecklistFilter.All.ordinal
                             }
-                        },
-                        onProgressMinus = { changeProgress(record, -1) },
-                        onProgressPlus = { changeProgress(record, 1) },
-                        onDeleteRequest = { pendingDeleteId = record.id },
-                    )
+                            insertRow(null)
+                        }) { Text("添加第一条记录") }
+                    }
                 }
             }
-            // 新行编辑器固定排在未看完之后、已看完之前，方便连续输入。
-            item(key = "new-record-editor") {
-                NewRecordEditor(
-                    draft = editorDraft,
-                    focusRequester = newLineFocus,
-                    hint = checklist.kind.inputHint,
-                    onDraftChange = { input ->
-                        if ('\n' in input) {
-                            editorDraft = commitEditorLines(input)
-                            focusNewLine()
-                        } else {
-                            editorDraft = input
-                        }
-                    },
-                    onCommit = { editorDraft = commitEditorLines(editorDraft, flushTail = true) },
-                    onSubmit = {
-                        editorDraft = commitEditorLines(editorDraft, flushTail = true)
-                        focusNewLine()
-                    },
-                )
-            }
-            if (showCompleted && completed.isNotEmpty()) {
-                item(key = "done-header") {
+            items(displayedRows, key = { it?.id ?: "done-header" }) { record ->
+                if (record == null) {
                     Text(
-                        "已看完 ${completed.size}",
+                        "已看完 $completedCount",
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(start = 4.dp, top = 4.dp),
                     )
-                }
-            }
-            if (showCompleted) {
-                items(completed, key = { it.id }) { record ->
+                } else {
+                    val isNew = record.id == draftRowId
                     ChecklistRow(
                         record = record,
                         draft = titleDrafts[record.id],
+                        editing = editingId == record.id,
+                        isNew = isNew,
+                        inputHint = checklist.kind.inputHint,
                         progressUnit = checklist.kind.progressUnit,
-                        onDraftChange = { changeTitle(record, it) },
-                        onCommitTitle = { commitTitle(record) },
+                        drag = drag,
+                        onEdit = {
+                            if (editingId != record.id) {
+                                closeEditor()
+                                editingId = record.id
+                            }
+                        },
+                        onDraftChange = { input ->
+                            titleDrafts[record.id] = input.replace('\n', ' ')
+                        },
+                        onSubmit = { insertRow(record) },
+                        onFinishEditing = { finishEditing(record) },
                         onToggle = {
                             try {
                                 checklist.setFinished(record.id, !record.finished)
@@ -354,54 +395,62 @@ private val TitleDraftsSaver: Saver<SnapshotStateMap<String, String>, Any> = map
 private fun ChecklistRow(
     record: ChecklistRecord,
     draft: String?,
+    editing: Boolean,
+    isNew: Boolean,
+    inputHint: String,
     progressUnit: String,
+    drag: ChecklistDrag,
+    onEdit: () -> Unit,
     onDraftChange: (String) -> Unit,
-    onCommitTitle: () -> Unit,
+    onSubmit: () -> Unit,
+    onFinishEditing: () -> Unit,
     onToggle: () -> Unit,
     onProgressMinus: () -> Unit,
     onProgressPlus: () -> Unit,
     onDeleteRequest: () -> Unit,
 ) {
-    var editingTitle by remember { mutableStateOf(false) }
     val title = draft ?: record.title
     Card(
+        modifier = drag.rowModifier(record.id),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
         Row(
             Modifier
                 .fillMaxWidth()
-                .combinedClickable(
-                    onLongClickLabel = "删除这条记录",
-                    onLongClick = onDeleteRequest,
-                    onClickLabel = "编辑标题",
-                    onClick = { editingTitle = true },
-                )
                 .padding(start = 6.dp, end = 4.dp, top = 2.dp, bottom = 2.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Checkbox(
                 checked = record.finished,
                 onCheckedChange = { onToggle() },
+                enabled = !isNew,
                 modifier = Modifier.semantics { contentDescription = record.title },
             )
             Column(
                 Modifier
                     .weight(1f)
+                    .heightIn(min = 48.dp)
+                    .combinedClickable(
+                        onLongClickLabel = "删除这条记录",
+                        onLongClick = if (isNew) null else onDeleteRequest,
+                        onClickLabel = "编辑标题",
+                        onClick = onEdit,
+                    )
                     .padding(vertical = 4.dp),
+                verticalArrangement = Arrangement.Center,
             ) {
-                if (editingTitle) {
+                if (editing) {
                     TitleField(
                         value = title,
+                        hint = inputHint,
                         onValueChange = onDraftChange,
-                        onFinishEditing = {
-                            onCommitTitle()
-                            editingTitle = false
-                        },
+                        onSubmit = onSubmit,
+                        onFinishEditing = onFinishEditing,
                     )
                 } else {
                     Text(
-                        title,
+                        title.ifEmpty { inputHint },
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium,
                     )
@@ -419,27 +468,32 @@ private fun ChecklistRow(
             }
             ProgressStepper(
                 progress = record.progress,
+                enabled = !isNew,
                 unit = progressUnit,
                 onMinus = onProgressMinus,
                 onPlus = onProgressPlus,
             )
+            ChecklistDragHandle(record.id, drag, enabled = !isNew)
         }
     }
 }
 
-/** 编辑态保留原生文本选择；平时只显示文字，由整行处理长按。 */
+/** 编辑态保留原生文本选择；平时由标题区域处理点击和长按。 */
 @Composable
 private fun TitleField(
     value: String,
+    hint: String,
     onValueChange: (String) -> Unit,
+    onSubmit: () -> Unit,
     onFinishEditing: () -> Unit,
 ) {
     val focusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
+    val bringIntoView = remember { BringIntoViewRequester() }
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
         keyboard?.show()
+        bringIntoView.bringIntoView()
     }
     var wasFocused by remember { mutableStateOf(false) }
     BasicTextField(
@@ -450,11 +504,21 @@ private fun TitleField(
             color = MaterialTheme.colorScheme.onSurface,
         ),
         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+        singleLine = true,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-        keyboardActions = KeyboardActions(onNext = { focusManager.clearFocus() }),
+        keyboardActions = KeyboardActions(onNext = { onSubmit() }),
         modifier = Modifier
             .fillMaxWidth()
             .focusRequester(focusRequester)
+            .bringIntoViewRequester(bringIntoView)
+            .onPreviewKeyEvent { event ->
+                if (event.key != Key.Enter && event.key != Key.NumPadEnter) {
+                    false
+                } else {
+                    if (event.type == KeyEventType.KeyUp) onSubmit()
+                    true
+                }
+            }
             .onFocusChanged { state ->
                 if (state.isFocused) {
                     wasFocused = true
@@ -463,6 +527,16 @@ private fun TitleField(
                     onFinishEditing()
                 }
             },
+        decorationBox = { field ->
+            if (value.isEmpty()) {
+                Box {
+                    Text(hint, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    field()
+                }
+            } else {
+                field()
+            }
+        },
     )
 }
 
@@ -473,13 +547,14 @@ private fun BigDecimal.toProgressText(): String = stripTrailingZeros().toPlainSt
 @Composable
 private fun ProgressStepper(
     progress: BigDecimal,
+    enabled: Boolean,
     unit: String,
     onMinus: () -> Unit,
     onPlus: () -> Unit,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         // 图标向数字靠拢，保留原有按钮触控范围。
-        IconButton(onClick = onMinus, enabled = progress > BigDecimal.ZERO) {
+        IconButton(onClick = onMinus, enabled = enabled && progress > BigDecimal.ZERO) {
             Icon(
                 AvalonIcons.Minus,
                 contentDescription = "减少已看${unit}数",
@@ -493,7 +568,7 @@ private fun ProgressStepper(
             textAlign = TextAlign.Center,
             modifier = Modifier.widthIn(min = 28.dp),
         )
-        IconButton(onClick = onPlus) {
+        IconButton(onClick = onPlus, enabled = enabled) {
             Icon(
                 AvalonIcons.Add,
                 contentDescription = "增加已看${unit}数",
@@ -503,39 +578,3 @@ private fun ProgressStepper(
     }
 }
 
-/** 新行编辑器：回车/下一动作提交并保留焦点；粘贴多行按行拆分入库。 */
-@Composable
-private fun NewRecordEditor(
-    draft: String,
-    focusRequester: FocusRequester,
-    hint: String,
-    onDraftChange: (String) -> Unit,
-    onCommit: () -> Unit,
-    onSubmit: () -> Unit,
-) {
-    val bringIntoView = remember { BringIntoViewRequester() }
-    val focusScope = rememberCoroutineScope()
-    var wasFocused by remember { mutableStateOf(false) }
-    OutlinedTextField(
-        value = draft,
-        onValueChange = onDraftChange,
-        placeholder = { Text(hint) },
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-        keyboardActions = KeyboardActions(onNext = { onSubmit() }),
-        minLines = 1,
-        maxLines = 5,
-        modifier = Modifier
-            .fillMaxWidth()
-            .focusRequester(focusRequester)
-            .bringIntoViewRequester(bringIntoView)
-            .onFocusChanged { state ->
-                if (state.isFocused) {
-                    wasFocused = true
-                    focusScope.launch { bringIntoView.bringIntoView() }
-                } else if (wasFocused) {
-                    wasFocused = false
-                    onCommit()
-                }
-            },
-    )
-}

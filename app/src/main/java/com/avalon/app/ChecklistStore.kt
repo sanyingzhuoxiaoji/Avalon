@@ -41,19 +41,50 @@ internal class ChecklistStore(
         records.addAll(parseList(prefs.getString(storageKey, null)))
     }
 
-    fun save(existingId: String?, title: String, note: String) {
+    fun save(existingId: String, title: String, note: String) {
         val cleanTitle = title.trim()
         val cleanNote = note.trim()
         if (cleanTitle.isEmpty()) throw IllegalArgumentException("请填写作品名称")
-        val updated: List<ChecklistRecord> = if (existingId == null) {
-            records + ChecklistRecord(newId(), cleanTitle, cleanNote)
-        } else {
-            val index = records.indexOfFirst { it.id == existingId }
-            if (index < 0) throw IllegalArgumentException("该记录已被删除，无法保存")
-            // 编辑只改标题与备注，保留原 id、已看完状态与进度。
-            records.mapIndexed { i, r -> if (i == index) r.copy(title = cleanTitle, note = cleanNote) else r }
-        }
+        val index = records.indexOfFirst { it.id == existingId }
+        if (index < 0) throw IllegalArgumentException("该记录已被删除，无法保存")
+        // 编辑只改标题与备注，保留原 id、已看完状态与进度。
+        commit(
+            records.mapIndexed { i, r -> if (i == index) r.copy(title = cleanTitle, note = cleanNote) else r },
+            "${label}记录保存失败，请重试",
+        )
+    }
+
+    // 新增：插到锚点 afterId 之后；锚点为 null 或已被删除（找不到）时插到开头。
+    // id 由调用方新生成且当前不存在，重复即拒绝；已看完状态按调用方传入的值保留，不在本层调整。
+    fun insertAfter(afterId: String?, record: ChecklistRecord) {
+        val cleanTitle = record.title.trim()
+        if (cleanTitle.isEmpty()) throw IllegalArgumentException("请填写作品名称")
+        if (records.any { it.id == record.id }) throw IllegalArgumentException("该记录已存在，无法新增")
+        val anchorIndex = if (afterId == null) -1 else records.indexOfFirst { it.id == afterId }
+        val inserted = record.copy(title = cleanTitle, note = record.note.trim())
+        val updated = records.toMutableList()
+        updated.add(if (anchorIndex >= 0) anchorIndex + 1 else 0, inserted)
         commit(updated, "${label}记录保存失败，请重试")
+    }
+
+    // 拖拽排序：把 id 行移到 targetId 之前/之后。仅限同组（已看完状态相同）内移动，不跨组、不改状态；
+    // 行缺失、目标缺失或结果顺序不变时直接跳过，不落盘。
+    fun move(id: String, targetId: String, before: Boolean) {
+        if (id == targetId) return
+        val fromIndex = records.indexOfFirst { it.id == id }
+        if (fromIndex < 0) return
+        val targetIndex = records.indexOfFirst { it.id == targetId }
+        if (targetIndex < 0) return
+        if (records[fromIndex].finished != records[targetIndex].finished) return
+        // 先摘下再定位目标下标（移除点在目标之前时目标下标左移一位）；
+        // 摘下后插回原下标即整表顺序不变，此时跳过 commit。
+        val updated = records.toMutableList()
+        val moved = updated.removeAt(fromIndex)
+        val anchor = updated.indexOfFirst { it.id == targetId }
+        val insertIndex = if (before) anchor else anchor + 1
+        if (insertIndex == fromIndex) return
+        updated.add(insertIndex, moved)
+        commit(updated, "${label}记录排序保存失败，请重试")
     }
 
     fun setFinished(id: String, finished: Boolean) {

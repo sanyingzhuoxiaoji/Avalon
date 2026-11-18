@@ -31,6 +31,16 @@ internal object AvalonIcons {
         }
     }
 
+    /** 拖动排序把手：两道横杠握点。 */
+    val DragHandle: ImageVector by lazy {
+        lineIcon("DragHandle") {
+            moveTo(4f, 9f)
+            lineTo(20f, 9f)
+            moveTo(4f, 15f)
+            lineTo(20f, 15f)
+        }
+    }
+
     /** 延迟曲线，表示一次连通性测试。 */
     val Pulse: ImageVector by lazy {
         lineIcon("Pulse") {
