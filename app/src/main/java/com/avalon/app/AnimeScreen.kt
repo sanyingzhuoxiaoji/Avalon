@@ -215,7 +215,7 @@ internal fun AnimeScreen(
             modifier = Modifier.fillMaxWidth().weight(1f),
             state = listState,
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 132.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             if (showUnfinished) {
                 items(unfinished, key = { it.id }) { record ->
@@ -360,7 +360,7 @@ private fun AnimeRow(
                     onLongClick = onOpenMenu,
                     onClick = { },
                 )
-                .padding(start = 6.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
+                .padding(start = 6.dp, end = 4.dp, top = 2.dp, bottom = 2.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Checkbox(
@@ -371,7 +371,7 @@ private fun AnimeRow(
             Column(
                 Modifier
                     .weight(1f)
-                    .padding(vertical = 8.dp),
+                    .padding(vertical = 4.dp),
             ) {
                 AnimeTitleField(
                     value = draft ?: record.title,
@@ -456,7 +456,7 @@ private fun EpisodeStepper(
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
-            modifier = Modifier.widthIn(min = 42.dp),
+            modifier = Modifier.widthIn(min = 28.dp),
         )
         IconButton(onClick = onPlus) {
             Icon(AvalonIcons.Add, contentDescription = "增加已看集数")
