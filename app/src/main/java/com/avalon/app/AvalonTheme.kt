@@ -5,6 +5,9 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
+// 面向深紫墨色文字的香槟金底，只用于进度牌与网站卡片。
+internal val ChampagneGold = Color(0xFFE2C891)
+
 // 紫金竖排星图夜空方案（preview/index.html 批准稿）：
 // 深紫夜空 #180E2D 为底，暖金 #DCAB62 作主控件色，淡紫 #C5AFD9 为辅助，
 // 文字用暖羊皮纸色 #EEE1D0。两种系统模式统一使用该深色品牌方向。

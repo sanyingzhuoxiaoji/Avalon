@@ -586,10 +586,10 @@ private fun ProgressStepper(
     // 纸金进度牌：纸金底 + 紫细描边，数字与步进按钮落在纸面上。
     Surface(
         shape = RoundedCornerShape(4.dp),
-        color = MaterialTheme.colorScheme.primaryContainer,
+        color = ChampagneGold,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
-        CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onPrimaryContainer) {
+        CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.inverseOnSurface) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(horizontal = 2.dp),
@@ -605,7 +605,7 @@ private fun ProgressStepper(
                 Text(
                     "${progress.toProgressText()} $unit",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    color = MaterialTheme.colorScheme.inverseOnSurface,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.widthIn(min = 28.dp),
                 )
