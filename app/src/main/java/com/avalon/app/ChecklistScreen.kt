@@ -1,9 +1,7 @@
 package com.avalon.app
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -25,8 +23,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,6 +32,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
@@ -55,6 +52,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -108,7 +107,6 @@ internal fun ChecklistScreen(
     // 新行编辑器草稿，可暂存未提交的多行文本。
     var editorDraft by rememberSaveable { mutableStateOf("") }
     var pendingDeleteId by rememberSaveable { mutableStateOf<String?>(null) }
-    var menuRecordId by remember { mutableStateOf<String?>(null) }
     val listState = rememberLazyListState()
     val newLineFocus = remember { FocusRequester() }
     val entryScope = rememberCoroutineScope()
@@ -255,9 +253,6 @@ internal fun ChecklistScreen(
                         },
                         onProgressMinus = { changeProgress(record, -1) },
                         onProgressPlus = { changeProgress(record, 1) },
-                        showMenu = menuRecordId == record.id,
-                        onDismissMenu = { menuRecordId = null },
-                        onOpenMenu = { menuRecordId = record.id },
                         onDeleteRequest = { pendingDeleteId = record.id },
                     )
                 }
@@ -311,9 +306,6 @@ internal fun ChecklistScreen(
                         },
                         onProgressMinus = { changeProgress(record, -1) },
                         onProgressPlus = { changeProgress(record, 1) },
-                        showMenu = menuRecordId == record.id,
-                        onDismissMenu = { menuRecordId = null },
-                        onOpenMenu = { menuRecordId = record.id },
                         onDeleteRequest = { pendingDeleteId = record.id },
                     )
                 }
@@ -329,6 +321,7 @@ internal fun ChecklistScreen(
             onConfirm = {
                 try {
                     checklist.delete(record.id)
+                    titleDrafts.remove(record.id)
                     pendingDeleteId = null
                 } catch (e: StorageWriteException) {
                     scope.launch { snackbarHostState.showStorageFailure(e) }
@@ -357,7 +350,6 @@ private val TitleDraftsSaver: Saver<SnapshotStateMap<String, String>, Any> = map
     },
 )
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ChecklistRow(
     record: ChecklistRecord,
@@ -368,11 +360,10 @@ private fun ChecklistRow(
     onToggle: () -> Unit,
     onProgressMinus: () -> Unit,
     onProgressPlus: () -> Unit,
-    showMenu: Boolean,
-    onDismissMenu: () -> Unit,
-    onOpenMenu: () -> Unit,
     onDeleteRequest: () -> Unit,
 ) {
+    var editingTitle by remember { mutableStateOf(false) }
+    val title = draft ?: record.title
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
@@ -382,8 +373,9 @@ private fun ChecklistRow(
                 .fillMaxWidth()
                 .combinedClickable(
                     onLongClickLabel = "删除这条记录",
-                    onLongClick = onOpenMenu,
-                    onClick = { },
+                    onLongClick = onDeleteRequest,
+                    onClickLabel = "编辑标题",
+                    onClick = { editingTitle = true },
                 )
                 .padding(start = 6.dp, end = 4.dp, top = 2.dp, bottom = 2.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -398,11 +390,22 @@ private fun ChecklistRow(
                     .weight(1f)
                     .padding(vertical = 4.dp),
             ) {
-                TitleField(
-                    value = draft ?: record.title,
-                    onValueChange = onDraftChange,
-                    onCommit = onCommitTitle,
-                )
+                if (editingTitle) {
+                    TitleField(
+                        value = title,
+                        onValueChange = onDraftChange,
+                        onFinishEditing = {
+                            onCommitTitle()
+                            editingTitle = false
+                        },
+                    )
+                } else {
+                    Text(
+                        title,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                    )
+                }
                 if (record.note.isNotBlank()) {
                     Text(
                         record.note,
@@ -420,28 +423,24 @@ private fun ChecklistRow(
                 onMinus = onProgressMinus,
                 onPlus = onProgressPlus,
             )
-            Box {
-                DropdownMenu(expanded = showMenu, onDismissRequest = onDismissMenu) {
-                    DropdownMenuItem(
-                        text = { Text("删除", color = MaterialTheme.colorScheme.error) },
-                        onClick = {
-                            onDismissMenu()
-                            onDeleteRequest()
-                        },
-                    )
-                }
-            }
         }
     }
 }
 
-/** 行内标题编辑：点击即改，回车或失焦提交（提交逻辑由调用方处理）。 */
+/** 编辑态保留原生文本选择；平时只显示文字，由整行处理长按。 */
 @Composable
 private fun TitleField(
     value: String,
     onValueChange: (String) -> Unit,
-    onCommit: () -> Unit,
+    onFinishEditing: () -> Unit,
 ) {
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+        keyboard?.show()
+    }
     var wasFocused by remember { mutableStateOf(false) }
     BasicTextField(
         value = value,
@@ -452,15 +451,16 @@ private fun TitleField(
         ),
         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-        keyboardActions = KeyboardActions(onNext = { onCommit() }),
+        keyboardActions = KeyboardActions(onNext = { focusManager.clearFocus() }),
         modifier = Modifier
             .fillMaxWidth()
+            .focusRequester(focusRequester)
             .onFocusChanged { state ->
                 if (state.isFocused) {
                     wasFocused = true
                 } else if (wasFocused) {
                     wasFocused = false
-                    onCommit()
+                    onFinishEditing()
                 }
             },
     )
