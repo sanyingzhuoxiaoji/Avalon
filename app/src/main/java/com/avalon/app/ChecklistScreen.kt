@@ -67,17 +67,37 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 
-private enum class AnimeFilter(val label: String) {
+private enum class ChecklistFilter(val label: String) {
     All("全部"),
     Unfinished("未看完"),
     Finished("已看完"),
 }
 
-/** 追番记录页：Notes 式行内清单——行内输入、回车下一行、勾选下沉、集数步进。 */
+/** 两种清单的差异化文案：页标题、进度单位（集/话）、新行输入提示。 */
+private val ChecklistKind.pageTitle: String
+    get() = when (this) {
+        ChecklistKind.Anime -> "追番记录"
+        ChecklistKind.Manga -> "漫画记录"
+    }
+
+private val ChecklistKind.progressUnit: String
+    get() = when (this) {
+        ChecklistKind.Anime -> "集"
+        ChecklistKind.Manga -> "话"
+    }
+
+private val ChecklistKind.inputHint: String
+    get() = when (this) {
+        ChecklistKind.Anime -> "输入番名，回车下一行"
+        ChecklistKind.Manga -> "输入漫画名，回车下一行"
+    }
+
+/** 清单页（追番/漫画共用）：Notes 式行内清单——行内输入、回车下一行、勾选下沉、进度步进。 */
 @Composable
-internal fun AnimeScreen(
-    store: AvalonStore,
+internal fun ChecklistScreen(
+    checklist: ChecklistStore,
     scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
@@ -96,10 +116,10 @@ internal fun AnimeScreen(
     fun focusNewLine() {
         entryScope.launch {
             withFrameNanos { }
-            val index = if (AnimeFilter.entries[filterIndex] == AnimeFilter.Finished) {
+            val index = if (ChecklistFilter.entries[filterIndex] == ChecklistFilter.Finished) {
                 0
             } else {
-                store.anime.count { !it.finished }
+                checklist.records.count { !it.finished }
             }
             listState.scrollToItem(index)
             withFrameNanos { }
@@ -107,7 +127,7 @@ internal fun AnimeScreen(
         }
     }
 
-    fun commitTitle(record: AnimeRecord) {
+    fun commitTitle(record: ChecklistRecord) {
         val draft = titleDrafts[record.id] ?: return
         val trimmed = draft.trim()
         if (trimmed.isEmpty() || trimmed == record.title) {
@@ -115,7 +135,7 @@ internal fun AnimeScreen(
             return
         }
         try {
-            store.saveAnime(existingId = record.id, title = trimmed, note = record.note)
+            checklist.save(existingId = record.id, title = trimmed, note = record.note)
             titleDrafts.remove(record.id)
         } catch (e: StorageWriteException) {
             // 失败保留草稿，展示数据层的中文错误。
@@ -123,7 +143,7 @@ internal fun AnimeScreen(
         }
     }
 
-    fun changeTitle(record: AnimeRecord, input: String) {
+    fun changeTitle(record: ChecklistRecord, input: String) {
         titleDrafts[record.id] = input.replace('\n', ' ')
         if ('\n' in input) commitTitle(record)
     }
@@ -139,7 +159,7 @@ internal fun AnimeScreen(
             val title = line.trim()
             if (title.isEmpty()) return@forEach
             try {
-                store.saveAnime(existingId = null, title = title, note = "")
+                checklist.save(existingId = null, title = title, note = "")
             } catch (e: StorageWriteException) {
                 failed.appendLine(title)
                 failure = e
@@ -151,9 +171,9 @@ internal fun AnimeScreen(
         return if (failed.isEmpty()) tail else failed.toString() + tail
     }
 
-    fun changeEpisodes(record: AnimeRecord, delta: Int) {
+    fun changeProgress(record: ChecklistRecord, delta: Int) {
         try {
-            store.setAnimeEpisodes(record.id, record.episodes + delta)
+            checklist.adjustProgress(record.id, delta)
         } catch (e: StorageWriteException) {
             scope.launch { snackbarHostState.showStorageFailure(e) }
         }
@@ -161,12 +181,12 @@ internal fun AnimeScreen(
 
     fun commitPending() {
         titleDrafts.toMap().keys.forEach { id ->
-            store.anime.firstOrNull { it.id == id }?.let { commitTitle(it) }
+            checklist.records.firstOrNull { it.id == id }?.let { commitTitle(it) }
         }
         editorDraft = commitEditorLines(editorDraft, flushTail = true)
     }
 
-    // 活动暂停或本页被移除（切到网站连接页）时提交未保存输入，避免静默丢失。
+    // 活动暂停或本页被移除（切到其他页）时提交未保存输入，避免静默丢失。
     val context = LocalContext.current
     DisposableEffect(context) {
         val lifecycle = (context as? LifecycleOwner)?.lifecycle
@@ -180,21 +200,21 @@ internal fun AnimeScreen(
         }
     }
 
-    val filter = AnimeFilter.entries[filterIndex]
-    val unfinished = store.anime.filter { !it.finished }
-    val completed = store.anime.filter { it.finished }
-    val showUnfinished = filter != AnimeFilter.Finished
-    val showCompleted = filter != AnimeFilter.Unfinished
+    val filter = ChecklistFilter.entries[filterIndex]
+    val unfinished = checklist.records.filter { !it.finished }
+    val completed = checklist.records.filter { it.finished }
+    val showUnfinished = filter != ChecklistFilter.Finished
+    val showCompleted = filter != ChecklistFilter.Unfinished
 
     Column(modifier.fillMaxSize().imePadding()) {
         Column(Modifier.padding(horizontal = 20.dp)) {
             Text(
-                "追番记录",
+                checklist.kind.pageTitle,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
             )
             Text(
-                "共 ${store.anime.size} 部 · 已看完 ${completed.size} 部",
+                "共 ${checklist.records.size} 部 · 已看完 ${completed.size} 部",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 2.dp),
@@ -203,7 +223,7 @@ internal fun AnimeScreen(
                 Modifier.padding(top = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                AnimeFilter.entries.forEachIndexed { index, item ->
+                ChecklistFilter.entries.forEachIndexed { index, item ->
                     FilterChip(
                         selected = filterIndex == index,
                         onClick = { filterIndex = index },
@@ -220,20 +240,21 @@ internal fun AnimeScreen(
         ) {
             if (showUnfinished) {
                 items(unfinished, key = { it.id }) { record ->
-                    AnimeRow(
+                    ChecklistRow(
                         record = record,
                         draft = titleDrafts[record.id],
+                        progressUnit = checklist.kind.progressUnit,
                         onDraftChange = { changeTitle(record, it) },
                         onCommitTitle = { commitTitle(record) },
                         onToggle = {
                             try {
-                                store.setAnimeFinished(record.id, !record.finished)
+                                checklist.setFinished(record.id, !record.finished)
                             } catch (e: StorageWriteException) {
                                 scope.launch { snackbarHostState.showStorageFailure(e) }
                             }
                         },
-                        onEpisodesMinus = { changeEpisodes(record, -1) },
-                        onEpisodesPlus = { changeEpisodes(record, 1) },
+                        onProgressMinus = { changeProgress(record, -1) },
+                        onProgressPlus = { changeProgress(record, 1) },
                         showMenu = menuRecordId == record.id,
                         onDismissMenu = { menuRecordId = null },
                         onOpenMenu = { menuRecordId = record.id },
@@ -242,10 +263,11 @@ internal fun AnimeScreen(
                 }
             }
             // 新行编辑器固定排在未看完之后、已看完之前，方便连续输入。
-            item(key = "new-anime-editor") {
-                NewAnimeEditor(
+            item(key = "new-record-editor") {
+                NewRecordEditor(
                     draft = editorDraft,
                     focusRequester = newLineFocus,
+                    hint = checklist.kind.inputHint,
                     onDraftChange = { input ->
                         if ('\n' in input) {
                             editorDraft = commitEditorLines(input)
@@ -274,20 +296,21 @@ internal fun AnimeScreen(
             }
             if (showCompleted) {
                 items(completed, key = { it.id }) { record ->
-                    AnimeRow(
+                    ChecklistRow(
                         record = record,
                         draft = titleDrafts[record.id],
+                        progressUnit = checklist.kind.progressUnit,
                         onDraftChange = { changeTitle(record, it) },
                         onCommitTitle = { commitTitle(record) },
                         onToggle = {
                             try {
-                                store.setAnimeFinished(record.id, !record.finished)
+                                checklist.setFinished(record.id, !record.finished)
                             } catch (e: StorageWriteException) {
                                 scope.launch { snackbarHostState.showStorageFailure(e) }
                             }
                         },
-                        onEpisodesMinus = { changeEpisodes(record, -1) },
-                        onEpisodesPlus = { changeEpisodes(record, 1) },
+                        onProgressMinus = { changeProgress(record, -1) },
+                        onProgressPlus = { changeProgress(record, 1) },
                         showMenu = menuRecordId == record.id,
                         onDismissMenu = { menuRecordId = null },
                         onOpenMenu = { menuRecordId = record.id },
@@ -298,14 +321,14 @@ internal fun AnimeScreen(
         }
     }
 
-    val pendingDelete = pendingDeleteId?.let { id -> store.anime.firstOrNull { it.id == id } }
+    val pendingDelete = pendingDeleteId?.let { id -> checklist.records.firstOrNull { it.id == id } }
     pendingDelete?.let { record ->
         AvalonDialog(
             title = "删除这条记录？",
             confirmLabel = "删除",
             onConfirm = {
                 try {
-                    store.deleteAnime(record.id)
+                    checklist.delete(record.id)
                     pendingDeleteId = null
                 } catch (e: StorageWriteException) {
                     scope.launch { snackbarHostState.showStorageFailure(e) }
@@ -336,14 +359,15 @@ private val TitleDraftsSaver: Saver<SnapshotStateMap<String, String>, Any> = map
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun AnimeRow(
-    record: AnimeRecord,
+private fun ChecklistRow(
+    record: ChecklistRecord,
     draft: String?,
+    progressUnit: String,
     onDraftChange: (String) -> Unit,
     onCommitTitle: () -> Unit,
     onToggle: () -> Unit,
-    onEpisodesMinus: () -> Unit,
-    onEpisodesPlus: () -> Unit,
+    onProgressMinus: () -> Unit,
+    onProgressPlus: () -> Unit,
     showMenu: Boolean,
     onDismissMenu: () -> Unit,
     onOpenMenu: () -> Unit,
@@ -374,7 +398,7 @@ private fun AnimeRow(
                     .weight(1f)
                     .padding(vertical = 4.dp),
             ) {
-                AnimeTitleField(
+                TitleField(
                     value = draft ?: record.title,
                     onValueChange = onDraftChange,
                     onCommit = onCommitTitle,
@@ -390,10 +414,11 @@ private fun AnimeRow(
                     )
                 }
             }
-            EpisodeStepper(
-                episodes = record.episodes,
-                onMinus = onEpisodesMinus,
-                onPlus = onEpisodesPlus,
+            ProgressStepper(
+                progress = record.progress,
+                unit = progressUnit,
+                onMinus = onProgressMinus,
+                onPlus = onProgressPlus,
             )
             Box {
                 DropdownMenu(expanded = showMenu, onDismissRequest = onDismissMenu) {
@@ -412,7 +437,7 @@ private fun AnimeRow(
 
 /** 行内标题编辑：点击即改，回车或失焦提交（提交逻辑由调用方处理）。 */
 @Composable
-private fun AnimeTitleField(
+private fun TitleField(
     value: String,
     onValueChange: (String) -> Unit,
     onCommit: () -> Unit,
@@ -441,24 +466,28 @@ private fun AnimeTitleField(
     )
 }
 
-/** 已看集数步进器：0 时减号禁用；保存失败由 store 保持原值，不虚增。 */
+/** 进度文本：精确十进制，去掉尾随 0（2.500 → 2.5，整数不带小数点）。 */
+private fun BigDecimal.toProgressText(): String = stripTrailingZeros().toPlainString()
+
+/** 进度步进器：0 时减号禁用；保存失败由 store 保持原值，不虚增。集（追番）/话（漫画）按类型区分。 */
 @Composable
-private fun EpisodeStepper(
-    episodes: Int,
+private fun ProgressStepper(
+    progress: BigDecimal,
+    unit: String,
     onMinus: () -> Unit,
     onPlus: () -> Unit,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        // 图标向集数靠拢，保留原有按钮触控范围。
-        IconButton(onClick = onMinus, enabled = episodes > 0) {
+        // 图标向数字靠拢，保留原有按钮触控范围。
+        IconButton(onClick = onMinus, enabled = progress > BigDecimal.ZERO) {
             Icon(
                 AvalonIcons.Minus,
-                contentDescription = "减少已看集数",
+                contentDescription = "减少已看${unit}数",
                 modifier = Modifier.offset(x = 6.dp),
             )
         }
         Text(
-            "$episodes 集",
+            "${progress.toProgressText()} $unit",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -467,7 +496,7 @@ private fun EpisodeStepper(
         IconButton(onClick = onPlus) {
             Icon(
                 AvalonIcons.Add,
-                contentDescription = "增加已看集数",
+                contentDescription = "增加已看${unit}数",
                 modifier = Modifier.offset(x = (-6).dp),
             )
         }
@@ -476,9 +505,10 @@ private fun EpisodeStepper(
 
 /** 新行编辑器：回车/下一动作提交并保留焦点；粘贴多行按行拆分入库。 */
 @Composable
-private fun NewAnimeEditor(
+private fun NewRecordEditor(
     draft: String,
     focusRequester: FocusRequester,
+    hint: String,
     onDraftChange: (String) -> Unit,
     onCommit: () -> Unit,
     onSubmit: () -> Unit,
@@ -489,7 +519,7 @@ private fun NewAnimeEditor(
     OutlinedTextField(
         value = draft,
         onValueChange = onDraftChange,
-        placeholder = { Text("输入番名，回车下一行") },
+        placeholder = { Text(hint) },
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         keyboardActions = KeyboardActions(onNext = { onSubmit() }),
         minLines = 1,
@@ -509,4 +539,3 @@ private fun NewAnimeEditor(
             },
     )
 }
-

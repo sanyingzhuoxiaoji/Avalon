@@ -82,6 +82,26 @@ internal object AvalonIcons {
         }
     }
 
+    /** 摊开的书本：漫画记录页标识。 */
+    val Book: ImageVector by lazy {
+        lineIcon("Book") {
+            // 左页：中缝向左展开的书页轮廓。
+            moveTo(12f, 6.5f)
+            curveTo(10.9f, 5.3f, 9.3f, 4.5f, 7f, 4.5f)
+            lineTo(3f, 4.5f)
+            lineTo(3f, 18.5f)
+            lineTo(7f, 18.5f)
+            curveTo(9.3f, 18.5f, 10.9f, 19.3f, 12f, 20.5f)
+            // 右页：与左页镜像。
+            moveTo(12f, 6.5f)
+            curveTo(13.1f, 5.3f, 14.7f, 4.5f, 17f, 4.5f)
+            lineTo(21f, 4.5f)
+            lineTo(21f, 18.5f)
+            lineTo(17f, 18.5f)
+            curveTo(14.7f, 18.5f, 13.1f, 19.3f, 12f, 20.5f)
+        }
+    }
+
     /** 经纬地球：网站连接页标识。 */
     val Globe: ImageVector by lazy {
         lineIcon("Globe") {

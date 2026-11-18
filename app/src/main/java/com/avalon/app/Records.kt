@@ -3,14 +3,7 @@ package com.avalon.app
 import java.io.IOException
 import java.net.URI
 import java.net.URISyntaxException
-
-internal data class AnimeRecord(
-    val id: String,
-    val title: String,
-    val note: String = "",
-    val finished: Boolean = false,
-    val episodes: Int = 0,
-)
+import java.util.UUID
 
 internal data class WebsiteRecord(
     val id: String,
@@ -27,7 +20,10 @@ internal data class ProbeResult(
 /** SharedPreferences 落盘失败（commit 返回 false）时抛出；message 可直接展示。 */
 internal class StorageWriteException(message: String) : IOException(message)
 
-// 仅识别开头处的协议（如 https://），查询串里的 “://” 不算协议。
+/** 清单与书签共用的随机记录标识。 */
+internal fun newId(): String = UUID.randomUUID().toString()
+
+/** 仅识别开头处的协议（如 https://），查询串里的 “://” 不算协议。 */
 private val LEADING_SCHEME = Regex("^[A-Za-z][A-Za-z0-9+.-]*://")
 
 /**
